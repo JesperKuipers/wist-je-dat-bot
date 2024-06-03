@@ -1,0 +1,8 @@
+services:
+  discord-bot:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - ./settings.json:/app/settings.json
+    restart: unless-stopped
