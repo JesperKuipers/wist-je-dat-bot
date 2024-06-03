@@ -1,15 +1,15 @@
-# Gebaseerd op de officiële Python image
-FROM python:3.8-slim-buster
+# BUILD
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+ARG BUILD_VER
+WORKDIR /src
+COPY ./ModCore ./
+RUN dotnet restore
+RUN dotnet publish -c Release -o out /p:VersionPrefix=${BUILD_VER}
 
-# Werkomgeving instellen
+# RUNNER IMAGE
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
 WORKDIR /app
+COPY --from=build /src/out .
+WORKDIR /config
 
-# Vereisten kopiëren en installeren
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Kopieer de rest van de applicatiecode
-COPY . .
-
-# De bot starten
-CMD ["python", "bot.py"]
+ENTRYPOINT ["dotnet", "/app/ModCore.dll"]
