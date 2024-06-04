@@ -8,7 +8,7 @@ namespace wistJeDatBot.Commands
 {
     public sealed class HelpCommand
     {
-        [Command("help"), DescriptionAttribute("Shows all commands"), TextAlias("commands")]
+        [Command("help"), Description("Shows all commands"), TextAlias("commands")]
         public ValueTask ExecuteAsync(CommandContext context)
         {
             var embedBuilder = new DiscordEmbedBuilder

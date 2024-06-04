@@ -1,12 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using dotenv.net;
+﻿using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.SlashCommands;
 using DSharpPlus.Commands;
-using DSharpPlus.Interactivity;
 using DSharpPlus.Entities;
-using Microsoft.Extensions.DependencyInjection;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
