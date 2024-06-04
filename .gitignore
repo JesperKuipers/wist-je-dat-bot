@@ -617,6 +617,7 @@ AppPackages/
 
 # settings
 /settings.json
+/config.json
 
 # Environments
 .env
