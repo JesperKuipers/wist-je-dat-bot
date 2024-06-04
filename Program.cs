@@ -2,63 +2,62 @@
 using System.Threading.Tasks;
 using dotenv.net;
 using DSharpPlus;
-using DSharpPlus.CommandsNext;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.Commands;
+using DSharpPlus.Interactivity;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.DependencyInjection;
+using DSharpPlus.Commands.Processors.TextCommands;
+using DSharpPlus.Commands.Processors.SlashCommands;
+using DSharpPlus.Commands.Processors.TextCommands.Parsing;
+using Microsoft.Extensions.Configuration;
 
-namespace wist_je_dat_bot
+
+namespace wistJeDatBot
 {
     class Program
     {
         static async Task Main(string[] args)
         {
-            // Load the .env file.
-            DotEnv.Load();
+            ConfigurationBuilder configurationBuilder = new();
+            // right click on config.json, click properties, and in Copy to Output Directory select Copy if newer
+            configurationBuilder.AddJsonFile("config.json", true, true);
+            configurationBuilder.AddCommandLine(args);
 
-            // Grab discord token
-            string? discordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
-            if (string.IsNullOrWhiteSpace(discordToken))
+            IConfiguration configuration = configurationBuilder.Build();
+            string discordToken = configuration.GetValue<string>("WISTJEDATBOT:discord_token") ?? throw new InvalidOperationException("Missing Discord token.");
+            ulong debugGuildId = (ulong)configuration.GetValue<ulong?>("WISTJEDATBOT:debug_guild_id", null);
+            string prefix = configuration.GetValue<string>("WISTJEDATBOT:prefix") ?? throw new InvalidOperationException("Missing prefix.");
+
+            DiscordClientBuilder builder = DiscordClientBuilder.CreateDefault(discordToken, TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents | DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents);
+            DiscordClient discordClient = builder.Build();
+
+            // Use the commands extension
+            CommandsExtension commandsExtension = discordClient.UseCommands(new CommandsConfiguration()
             {
-                Console.WriteLine("Please specify a token in the DISCORD_TOKEN environment variable.");
-                Environment.Exit(1);
+                //ServiceProvider = serviceProvider,
+                DebugGuildId = debugGuildId,
+                // The default value, however it's shown here for clarity
+                RegisterDefaultCommandProcessors = true
+            });
 
-                // For the compiler's nullability, unreachable code.
-                return;
-            }
-
-            // We instantiate our client.
-            DiscordConfiguration config = new()
+            // Add all commands by scanning the current assembly
+            commandsExtension.AddCommands(typeof(Program).Assembly);
+            TextCommandProcessor textCommandProcessor = new(new()
             {
-                Token = discordToken,
+                // If you want to change it, you first set if the bot should react to mentions
+                // and then you can provide as many prefixes as you want.
+                PrefixResolver = new DefaultPrefixResolver(true, "!").ResolvePrefixAsync
+            });
 
-                // Needs message content intent enabled in Discord Developer Portal.
-                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents
-            };
-
-            DiscordClient client = new(config);
+            // Add text commands with a custom prefix (!ping)
+            await commandsExtension.AddProcessorsAsync(textCommandProcessor);
 
             // We can specify a status for our bot. Let's set it to "online" and set the activity to "with fire".
-            DiscordActivity status = new("Grabbing ur daily facts", ActivityType.Playing);
-
-            // Register Random as a singleton. This will be used by the random command.
-            ServiceCollection serviceCollection = new();
-            serviceCollection.AddSingleton(Random.Shared); // We're using the shared instance of Random for simplicity.
-
-            // Register CommandsNext
-            CommandsNextConfiguration commandsConfig = new()
-            {
-                // Add the service provider which will allow CommandsNext to inject the Random instance.
-                Services = serviceCollection.BuildServiceProvider(),
-                StringPrefixes = new[] { "!" }
-            };
-            CommandsNextExtension commandsNext = client.UseCommandsNext(commandsConfig);
-
-            // Register commands
-            // CommandsNext will search the assembly for any classes that inherit from BaseCommandModule and register them as commands.
-            commandsNext.RegisterCommands(typeof(Program).Assembly);
+            DiscordActivity status = new("for new facts", DiscordActivityType.Watching);
 
             // Now we connect and log in.
-            await client.ConnectAsync(status, UserStatus.Online);
+            await discordClient.ConnectAsync(status, DiscordUserStatus.Online);
 
             // And now we wait infinitely so that our bot actually stays connected.
             await Task.Delay(-1);
