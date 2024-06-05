@@ -5,6 +5,7 @@ using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Entities;
+using static System.Net.WebRequestMethods;
 
 namespace wistJeDatBot.Commands
 {
@@ -19,7 +20,8 @@ namespace wistJeDatBot.Commands
         [Command("invite"), Description("Sends the link to get cool 😎 facts.")]
         public static ValueTask InviteAsync(CommandContext context)
         {
-            DiscordPermissions requiredPermissions = GetSubcommandsPermissions(context.Extension.Commands.Values);
+            //DiscordPermissions requiredPermissions = GetSubcommandsPermissions(context.Extension.Commands.Values);
+            DiscordPermissions requiredPermissions = (DiscordPermissions)1099511725127;
             StringBuilder stringBuilder = new();
             stringBuilder.Append("<https://discord.com/api/oauth2/authorize?client_id=");
             stringBuilder.Append(context.Client.CurrentUser.Id);

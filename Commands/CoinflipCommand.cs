@@ -16,7 +16,7 @@ namespace wistJeDatBot.Commands
         /// <summary>
         /// Heads or tails?
         /// </summary>
-        [Command("coinflip"), TextAlias("flip", "random"), Description("Coinflip."), RequirePermissions(DiscordPermissions.EmbedLinks, DiscordPermissions.None)]
+        [Command("coinflip"), TextAlias("flip", "random"), Description("Coinflip.")]
         public static async ValueTask ExecuteAsync(CommandContext context)
         {
             await context.DeferResponseAsync();

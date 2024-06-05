@@ -6,6 +6,7 @@ using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using Microsoft.Extensions.Configuration;
+using wistJeDatBot.Commands;
 
 
 namespace wistJeDatBot
@@ -21,17 +22,19 @@ namespace wistJeDatBot
 
             IConfiguration configuration = configurationBuilder.Build();
             string discordToken = configuration.GetValue<string>("WISTJEDATBOT:discord_token") ?? throw new InvalidOperationException("Missing Discord token.");
-            ulong debugGuildId = (ulong)configuration.GetValue<ulong?>("WISTJEDATBOT:debug_guild_id", null);
+            ulong debugGuildId = (ulong)configuration.GetValue<ulong?>("WISTJEDATBOT:debug_guild_id", defaultValue: 0);
             string prefix = configuration.GetValue<string>("WISTJEDATBOT:prefix") ?? throw new InvalidOperationException("Missing prefix.");
 
-            DiscordClientBuilder builder = DiscordClientBuilder.CreateDefault(discordToken, TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents | DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents);
+            DiscordClientBuilder builder = DiscordClientBuilder.CreateDefault(discordToken, TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents | DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents); ;
             DiscordClient discordClient = builder.Build();
 
             // Use the commands extension
             CommandsExtension commandsExtension = discordClient.UseCommands(new CommandsConfiguration()
             {
-                //ServiceProvider = serviceProvider,
-                DebugGuildId = debugGuildId,
+                // All servers
+                DebugGuildId = 0,
+                // Only test server.
+                //DebugGuildId = debugGuildId,
                 // The default value, however it's shown here for clarity
                 RegisterDefaultCommandProcessors = true
             });
@@ -42,7 +45,7 @@ namespace wistJeDatBot
             {
                 // If you want to change it, you first set if the bot should react to mentions
                 // and then you can provide as many prefixes as you want.
-                PrefixResolver = new DefaultPrefixResolver(true, "!").ResolvePrefixAsync
+                PrefixResolver = new DefaultPrefixResolver(true, prefix).ResolvePrefixAsync
             });
 
             // Add text commands with a custom prefix (!ping)
